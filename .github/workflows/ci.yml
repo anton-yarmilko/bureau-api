@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: test (${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        db: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bureau
+          POSTGRES_PASSWORD: bureau
+          POSTGRES_DB: bureau
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U bureau" --health-interval 2s --health-retries 15
+    env:
+      PG_URL: postgresql+psycopg://bureau:bureau@localhost:5432/bureau
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --frozen
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Tests
+        run: |
+          if [ "${{ matrix.db }}" = postgres ]; then export TEST_DATABASE_URL="$PG_URL"; fi
+          uv run pytest -q
+      - name: Migrations apply cleanly
+        if: matrix.db == 'postgres'
+        env:
+          DATABASE_URL: ${{ env.PG_URL }}
+        run: |
+          uv run python -c "from sqlalchemy import create_engine, text; e = create_engine('$PG_URL'); c = e.connect(); c.execute(text('DROP SCHEMA public CASCADE; CREATE SCHEMA public')); c.commit()"
+          uv run alembic upgrade head && uv run alembic check
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t bureau-api .

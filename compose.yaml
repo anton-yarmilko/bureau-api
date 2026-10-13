@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bureau
+      POSTGRES_PASSWORD: bureau
+      POSTGRES_DB: bureau
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bureau"]
+      interval: 2s
+      retries: 15
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://bureau:bureau@db:5432/bureau
+      API_KEY: ${API_KEY:?set API_KEY, e.g. API_KEY=$(openssl rand -hex 16)}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
