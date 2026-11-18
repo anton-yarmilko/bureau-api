@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/anton-yarmilko/bureau-api/actions/workflows/ci.yml/badge.svg)](https://github.com/anton-yarmilko/bureau-api/actions/workflows/ci.yml)
 
-Tournaments and Elo ratings for **Bureau**, a bar in Vinnytsia whose guests play chess,
+Tournaments and Elo ratings for **Bureau**, a bar whose guests play chess,
 checkers, backgammon and darts through the bar's mobile app (Expo / React Native + Supabase).
 
 The app already handles games, accounts and Poster POS sync. This service adds the part that
@@ -85,7 +85,7 @@ on every push.
 Python 3.12 · FastAPI · Pydantic · SQLAlchemy 2 · Alembic · PostgreSQL · pytest · Ruff · uv ·
 Docker · GitHub Actions
 
-Built by [Anton Yarmilko](https://www.linkedin.com/in/anton-yarmilko) with AI-assisted
+Built by the repository owner with AI-assisted
 development; every file reviewed by hand.
 
 ## License
